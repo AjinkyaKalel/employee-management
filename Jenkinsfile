@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -7,42 +8,41 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                // Jenkins retrieves the source from the GitHub repository configured for this job.
-                checkout scm
-            }
-        }
-
         stage('Compile') {
             steps {
-                sh 'mvn -B clean compile'
+                bat 'mvn -B clean compile'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'mvn -B test'
+                bat 'mvn -B test'
             }
         }
 
         stage('Build Verification') {
             steps {
-                sh 'mvn -B package'
+                bat 'mvn -B package'
             }
         }
     }
 
     post {
         always {
-            junit 'target/surefire-reports/*.xml'
-            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true, allowEmptyArchive: true
+            junit allowEmptyResults: true,
+                  testResults: 'target/surefire-reports/*.xml'
+
+            archiveArtifacts artifacts: 'target/*.jar',
+                             fingerprint: true,
+                             allowEmptyArchive: true
         }
+
         success {
-            echo 'BUILD SUCCESSFUL: compilation, tests and packaging passed.'
+            echo 'BUILD SUCCESSFUL!'
         }
+
         failure {
-            echo 'BUILD FAILED: check the stage logs for errors.'
+            echo 'BUILD FAILED! Check the console output.'
         }
     }
 }
